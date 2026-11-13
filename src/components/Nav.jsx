@@ -30,7 +30,7 @@ export default function Nav() {
 
   return (
     <nav>
-      <Link className="logo" to="/?q=Marvel" aria-label="Simplified Flix home">
+      <Link className="logo" to="/" aria-label="Simplified Flix home">
         <img
           src="/assets/fes-logo.png"
           alt=""
@@ -47,7 +47,7 @@ export default function Nav() {
             className="search-form__input"
             type="text"
             id="searchInput"
-            placeholder="Search movies..."
+            placeholder="Search movies (e.g., Marvel)..."
             value={term}
             onChange={(event) => setTerm(event.target.value)}
             required

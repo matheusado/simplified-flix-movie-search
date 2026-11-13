@@ -92,7 +92,7 @@ export default function MovieDetails() {
 
   function handleBack() {
     if (location.key === "default") {
-      navigate("/?q=Marvel");
+      navigate("/");
       return;
     }
 

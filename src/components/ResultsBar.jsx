@@ -1,9 +1,11 @@
-export default function ResultsBar({ label, sort, onSortChange }) {
+export default function ResultsBar({ label, sort, onSortChange, heading = false }) {
+  const LabelTag = heading ? "h2" : "p";
+
   return (
     <div className="controls">
-      <p id="resultsInfo" className="resultsInfo">
+      <LabelTag id="resultsInfo" className="resultsInfo">
         {label}
-      </p>
+      </LabelTag>
       <div>
         <label htmlFor="sortSelect">Sort:</label>
         <select

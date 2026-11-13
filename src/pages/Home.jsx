@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import MovieGrid from "../components/MovieGrid.jsx";
 import ResultsBar from "../components/ResultsBar.jsx";
+import { getDiscoverSelection, saveDiscoverMovies } from "../data/discoverMovies.js";
 
 const SORTS = new Set(["default", "a-z", "z-a", "newest", "oldest"]);
 
@@ -53,46 +54,100 @@ export default function Home() {
   const [status, setStatus] = useState("loading");
   const [emptyMessage, setEmptyMessage] = useState("");
   const [resultsLabel, setResultsLabel] = useState(
-    `Showing: ${query || "Marvel"}`,
+    query ? `Showing: ${query}` : "Discover Movies",
   );
 
   useEffect(() => {
     if (!query) {
-      setSearchParams({ q: "Marvel" }, { replace: true });
-      return;
+      const cached = getDiscoverSelection().movies;
+      if (cached) {
+        setMovies(cached);
+        setEmptyMessage("");
+        setResultsLabel("Discover Movies");
+        setStatus("success");
+        return;
+      }
     }
 
     const controller = new AbortController();
 
     setStatus("loading");
     setEmptyMessage("");
-    setResultsLabel(`Showing: ${query}`);
+    setResultsLabel(query ? `Showing: ${query}` : "Discover Movies");
+
+    async function fetchSearch() {
+      const url = `https://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=${encodeURIComponent(query)}`;
+      const response = await fetch(url, { signal: controller.signal });
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+      }
+
+      const data = await readOmdb(response);
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      if (data.Response === "True") {
+        setMovies(data.Search ?? []);
+        setResultsLabel(`Showing: ${query} (${data.totalResults} results)`);
+        setStatus("success");
+        return;
+      }
+
+      setMovies([]);
+      setEmptyMessage(data.Error || "");
+      setStatus("empty");
+    }
+
+    async function fetchDiscover() {
+      const { ids } = getDiscoverSelection();
+      const responses = await Promise.all(
+        ids.map(async (id) => {
+          const url = `https://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&i=${encodeURIComponent(id)}`;
+          const response = await fetch(url, { signal: controller.signal });
+
+          if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+          }
+
+          return readOmdb(response);
+        }),
+      );
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      const seen = new Set();
+      const discovered = responses.filter((movie) => {
+        if (movie.Response !== "True" || !movie.imdbID || seen.has(movie.imdbID)) {
+          return false;
+        }
+        seen.add(movie.imdbID);
+        return true;
+      });
+
+      if (discovered.length === 0) {
+        setMovies([]);
+        setStatus("error");
+        return;
+      }
+
+      saveDiscoverMovies(discovered);
+      setMovies(discovered);
+      setStatus("success");
+    }
 
     async function fetchMovies() {
       try {
-        const url = `https://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&s=${encodeURIComponent(query)}`;
-        const response = await fetch(url, { signal: controller.signal });
-
-        if (!response.ok) {
-          throw new Error(`HTTP Error: ${response.status}`);
-        }
-
-        const data = await readOmdb(response);
-
-        if (controller.signal.aborted) {
+        if (query) {
+          await fetchSearch();
           return;
         }
 
-        if (data.Response === "True") {
-          setMovies(data.Search ?? []);
-          setResultsLabel(`Showing: ${query} (${data.totalResults} results)`);
-          setStatus("success");
-          return;
-        }
-
-        setMovies([]);
-        setEmptyMessage(data.Error || "");
-        setStatus("empty");
+        await fetchDiscover();
       } catch (error) {
         if (error.name === "AbortError" || controller.signal.aborted) {
           return;
@@ -100,7 +155,7 @@ export default function Home() {
 
         console.error("Error fetching movies:", error);
         setMovies([]);
-        setResultsLabel("Search failed");
+        setResultsLabel(query ? "Search failed" : "Discover Movies");
         setStatus("error");
       }
     }
@@ -108,7 +163,7 @@ export default function Home() {
     fetchMovies();
 
     return () => controller.abort();
-  }, [query, submittedAt, setSearchParams]);
+  }, [query, submittedAt]);
 
   const sortedMovies = useMemo(
     () => sortMovies(movies, sort),
@@ -134,6 +189,7 @@ export default function Home() {
     <main>
       <ResultsBar
         label={resultsLabel}
+        heading={!query}
         sort={sort}
         onSortChange={handleSortChange}
       />

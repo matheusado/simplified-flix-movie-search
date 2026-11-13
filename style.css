@@ -178,6 +178,14 @@ main {
   margin: -20px auto 20px;
 }
 
+h2.resultsInfo {
+  margin: 0;
+  color: #222;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
 #sortSelect {
   border: 1px solid gray;
   padding: 2px;

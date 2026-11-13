@@ -174,16 +174,30 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px 16px;
+  width: 100%;
   max-width: 1200px;
-  margin: -20px auto 20px;
+  margin: 16px auto 0;
+}
+
+.controls > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 h2.resultsInfo {
   margin: 0;
   color: #222;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 600;
   line-height: 1.2;
+}
+
+.resultsInfo {
+  margin: 0;
+  min-width: 0;
 }
 
 #sortSelect {
@@ -191,16 +205,17 @@ h2.resultsInfo {
   padding: 2px;
   border-radius: 16px;
   font-family: "Geist", sans-serif;
-  margin-left: 8px;
+  margin-left: 0;
 }
 
 .movies-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
+  width: 100%;
   max-width: 1200px;
   justify-content: center;
-  margin: -20px auto;
+  margin: 22px auto 0;
 }
 
 .movie-card {
@@ -551,14 +566,18 @@ footer {
   }
 
   .controls {
-    align-items: flex-start;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 0;
+    gap: 10px 12px;
+    margin-top: 6px;
+  }
+
+  h2.resultsInfo {
+    font-size: 20px;
   }
 
   .resultsInfo {
-    flex: 1 1 160px;
+    flex: 1 1 auto;
     margin: 0;
   }
 
@@ -571,7 +590,7 @@ footer {
   .movies-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
-    margin-top: 0;
+    margin-top: 18px;
   }
 
   .movie-details {

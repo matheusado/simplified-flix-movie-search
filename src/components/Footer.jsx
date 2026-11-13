@@ -1,7 +1,7 @@
 export default function Footer() {
   return (
     <footer>
-      <p>Created by Simplified.org. Powered by OMDBapi.</p>
+      <p>Created by Matheus Dorneles. Powered by OMDb API.</p>
     </footer>
   );
 }
